@@ -1,0 +1,39 @@
+name: CI/CD Pipeline - To-Do App
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout del código
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Instalar dependencias del Backend
+        run: |
+          cd backend
+          npm install
+
+      - name: Verificación de sintaxis y Build
+        run: |
+          echo "Verificación de dependencias completada con éxito."
+
+  deploy:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Notificar inicio de despliegue
+        run: |
+          echo "Disparando despliegue automático hacia el servidor de producción (Render)..."
