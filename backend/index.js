@@ -68,7 +68,17 @@ app.delete('/api/tasks/:id', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
+// Prueba de conexión a la base de datos
+(async () => {
+    try {
+        const result = await pool.query("SELECT NOW()");
+        console.log("Conexion a PostgreSQL exitosa");
+        console.log(result.rows);
+    } catch (err) {
+        console.error("Error al conectar a PostgreSQL:");
+        console.error(err);
+    }
+})();
 app.listen(PORT, () => {
   console.log(`Servidor activo corriendo en el puerto ${PORT}`);
 });
