@@ -25,7 +25,11 @@ app.get('/api/tasks', async (req, res) => {
     const result = await pool.query('SELECT * FROM tasks ORDER BY id ASC');
     res.json(result.rows);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("ERROR EN PUT /api/tasks");
+    console.error(err);
+
+    res.status(500).json({ 
+        error: err.message });
   }
 });
 
@@ -69,7 +73,11 @@ app.delete('/api/tasks/:id', async (req, res) => {
     await pool.query('DELETE FROM tasks WHERE id = $1', [id]);
     res.json({ message: 'Tarea eliminada exitosamente' });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("ERROR EN DELETE/api/tasks");
+    console.error(err);
+
+    res.status(500).json({ 
+        error: err.message });
   }
 });
 // Prueba de conexión a la base de datos
