@@ -9,7 +9,7 @@ const PORT = process.env.PORT || 3000;
 // Conexión a la base de datos de Supabase mediante variable de entorno
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false }
+  ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false
 });
 
 app.use(cors());
