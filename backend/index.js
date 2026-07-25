@@ -54,7 +54,11 @@ app.put('/api/tasks/:id', async (req, res) => {
     );
     res.json(result.rows[0]);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("ERROR EN GET/api/tasks");
+    console.error(err);
+
+    res.status(500).json({ 
+        error: err.message });
   }
 });
 
