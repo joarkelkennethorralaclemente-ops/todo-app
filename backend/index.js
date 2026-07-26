@@ -7,7 +7,6 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Conexión a la base de datos de Supabase mediante variable de entorno
-console.log("DATABASE_URL:", process.env.DATABASE_URL);
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false
@@ -19,17 +18,32 @@ app.use(express.json());
 // Servir los archivos estáticos de la Single Page Application (Frontend)
 app.use(express.static(path.join(__dirname, '../frontend')));
 
+// Crea la tabla "tasks" automáticamente si todavía no existe en la base de datos.
+// Esta era la causa de los errores 500: el backend intentaba hacer SELECT/INSERT
+// sobre una tabla que nunca se había creado en Supabase.
+async function ensureSchema() {
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS tasks (
+        id SERIAL PRIMARY KEY,
+        title TEXT NOT NULL,
+        completed BOOLEAN NOT NULL DEFAULT FALSE,
+        created_at TIMESTAMP NOT NULL DEFAULT NOW()
+      );
+    `);
+    console.log('✔ Tabla "tasks" verificada/creada correctamente.');
+  } catch (err) {
+    console.error('✖ No se pudo verificar/crear la tabla "tasks":', err.message);
+  }
+}
+
 // Endpoint GET: Obtener todas las tareas
 app.get('/api/tasks', async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM tasks ORDER BY id ASC');
     res.json(result.rows);
   } catch (err) {
-    console.error("ERROR EN PUT /api/tasks");
-    console.error(err);
-
-    res.status(500).json({ 
-        error: err.message });
+    res.status(500).json({ error: err.message });
   }
 });
 
@@ -58,11 +72,7 @@ app.put('/api/tasks/:id', async (req, res) => {
     );
     res.json(result.rows[0]);
   } catch (err) {
-    console.error("ERROR EN GET/api/tasks");
-    console.error(err);
-
-    res.status(500).json({ 
-        error: err.message });
+    res.status(500).json({ error: err.message });
   }
 });
 
@@ -73,24 +83,12 @@ app.delete('/api/tasks/:id', async (req, res) => {
     await pool.query('DELETE FROM tasks WHERE id = $1', [id]);
     res.json({ message: 'Tarea eliminada exitosamente' });
   } catch (err) {
-    console.error("ERROR EN DELETE/api/tasks");
-    console.error(err);
-
-    res.status(500).json({ 
-        error: err.message });
+    res.status(500).json({ error: err.message });
   }
 });
-// Prueba de conexión a la base de datos
-(async () => {
-    try {
-        const result = await pool.query("SELECT NOW()");
-        console.log("Conexion a PostgreSQL exitosa");
-        console.log(result.rows);
-    } catch (err) {
-        console.error("Error al conectar a PostgreSQL:");
-        console.error(err);
-    }
-})();
-app.listen(PORT, () => {
-  console.log(`Servidor activo corriendo en el puerto ${PORT}`);
+
+ensureSchema().then(() => {
+  app.listen(PORT, () => {
+    console.log(`Servidor activo corriendo en el puerto ${PORT}`);
+  });
 });
