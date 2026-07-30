@@ -50,15 +50,30 @@ function renderTasks(tasks) {
     const li = document.createElement('li');
     li.className = task.completed ? 'completed' : '';
     li.dataset.title = task.title.toLowerCase();
-    
+
     li.innerHTML = `
       <span>
-        <input type="checkbox" ${task.completed ? 'checked' : ''} onchange="toggleTask(${task.id}, ${!task.completed})">
+        <input type="checkbox" class="toggle-checkbox" data-id="${task.id}" ${task.completed ? 'checked' : ''}>
         ${escapeHtml(task.title)}
       </span>
-      <button class="delete-btn" onclick="deleteTask(${task.id})">Eliminar</button>
+      <button class="delete-btn" data-id="${task.id}">Eliminar</button>
     `;
     list.appendChild(li);
+  });
+
+  // Reasignar eventos después de renderizar
+  document.querySelectorAll('.toggle-checkbox').forEach(checkbox => {
+    checkbox.addEventListener('change', (e) => {
+      const id = e.target.dataset.id;
+      toggleTask(id, e.target.checked);
+    });
+  });
+
+  document.querySelectorAll('.delete-btn').forEach(button => {
+    button.addEventListener('click', (e) => {
+      const id = e.target.dataset.id;
+      deleteTask(id);
+    });
   });
 }
 
